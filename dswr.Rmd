@@ -105,7 +105,7 @@ df_description <- tibble(variables = variables,
        description = description)
 
 kable(df_description, format = "html") %>% 
-  kable_styling(bootstrap_options = "striped",
+  kableExtra::kable_styling(bootstrap_options = "striped",
                             full_width = FALSE)
 ```
 
@@ -145,7 +145,7 @@ num_attributes <- df_cleaned %>%
 ```
 
 ```{r}
-descriptive_tab <- summarytools::descr(num_attributes, style = "rmarkdown") %>% round(2)
+descriptive_tab <- round(summarytools::descr(num_attributes, style = "rmarkdown"),2)
 
 
 kable(data.frame(descriptive_tab), format = "html") %>% 
@@ -164,7 +164,7 @@ age_plt = num_attributes %>%
   geom_histogram(aes(y= after_stat(density)), binwidth = 1,
                  color= "gray", fill="lightblue", alpha=0.5)+
   geom_density(color="blue") + 
-  labs(x="Ages", y="Density", title = "Customes Age Distribution") + 
+  labs(x="Ages", y="Density", title = "Customes \nAge Distribution") + 
   theme_minimal()
 
 # helath_annual paid
@@ -173,7 +173,7 @@ paid_plt = num_attributes %>%
   geom_histogram(aes(y= after_stat(density)), binwidth = 10000,
                  color= "gray", fill="lightblue", alpha=0.5)+
   geom_density(color="blue") + 
-  labs(x="Health Annual Paid", y="Density", title = "Customes Payments Distribution") + 
+  labs(x="Health Annual Paid", y="Density", title = "Customes \nPayments Distribution") + 
   theme_minimal()
 
 # day associated
@@ -182,7 +182,7 @@ day_plt = num_attributes %>%
   geom_histogram(aes(y= after_stat(density)),
                  color= "gray", fill="lightblue", alpha=0.5)+
   geom_density(color="blue") + 
-  labs(x="Day Associated", y="Density", title = "Customes day_associated Distribution") + 
+  labs(x="Day Associated", y="Density", title = "Customes Day \nAssociated Distribution") + 
   theme_minimal()
 
 
@@ -222,7 +222,7 @@ gender_plt <- cat_attributes %>%
 driving_license_plt <- cat_attributes %>% 
   ggplot(aes(x=driving_license)) +
   geom_bar(aes(fill=driving_license)) +
-  labs(x="Driving License", y="Count", title = "Customes Driving Licenser") + 
+  labs(x="Driving License", y="Count", title = "Customes \nDriving Licenser") + 
   theme_minimal()
 
 #region_code
@@ -230,28 +230,28 @@ region_code_plt <- cat_attributes %>%
   ggplot(aes(x=region_code)) +
   geom_bar(aes(fill=factor(region_code)),
            show.legend = FALSE) +
-  labs(x="Region code", y="Count", title = "Customes Region Code") + 
+  labs(x="Region code", y="Count", title = "Customes \nRegion Code") + 
   theme_minimal()
 
 #previously_insured
 previously_insured_plt <- cat_attributes %>% 
   ggplot(aes(x=previously_insured)) +
   geom_bar(aes(fill=previously_insured)) +
-  labs(x="Previously Insured", y="Count", title = "Customes Previously Insured") + 
+  labs(x="Previously Insured", y="Count", title = "Customes \nPreviously Insured") + 
   theme_minimal()
 
 #vehicle_age
 vehicle_age_plt <- cat_attributes %>% 
   ggplot(aes(x=vehicle_age)) +
   geom_bar(aes(fill=vehicle_age)) +
-  labs(x="Vehicle Age", y="Count", title = "Customes Vehicle Age") + 
+  labs(x="Vehicle Age", y="Count", title = "Customes \nVehicle Age") + 
   theme_minimal()
 
 #vehicle_damage
 vehicle_damage_plt <- cat_attributes %>% 
   ggplot(aes(x=vehicle_damage)) +
   geom_bar(aes(fill=vehicle_damage)) +
-  labs(x="Vehicle Damage", y="Count", title = "Customes Vehicle Damage") + 
+  labs(x="Vehicle Damage", y="Count", title = "Customes \nVehicle Damage") + 
   theme_minimal()
 
 #policy_sales_channel
@@ -259,7 +259,7 @@ policy_sales_channel_plt <- cat_attributes %>%
   ggplot(aes(x=policy_sales_channel)) +
   geom_bar(aes(fill=factor(policy_sales_channel)),
            show.legend = FALSE) +
-  labs(x="Policy Sales Channel", y="Count", title = "Customes Policy Sales Channel") + 
+  labs(x="Policy Sales Channel", y="Count", title = "Customes \nPolicy Sales Channel") + 
   theme_minimal()
 
 #response
