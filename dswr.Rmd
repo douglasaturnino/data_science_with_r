@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 # Imports
 
-```{r imports}
+```{r pacotes}
 library(tidyverse)
 library(janitor)
 library(readr)
@@ -276,6 +276,270 @@ gridExtra::grid.arrange(gender_plt,driving_license_plt,
                         ncol=2, nrow=4 )
 ```
 
-```{r}
+## Validação de hipótese
 
+```{r}
+# Read df_cleaned
+df_cleaned <- readRDS("df_cleaned.rds")
+```
+
+## **H1) O interese pelo seguro de carro é maior em clientes mais velhos. ✅**
+
+```{r}
+# Boxplot
+age_boxplot <- df_cleaned %>% 
+  ggplot(aes(x = response, y = age)) +
+  stat_boxplot(geom = 'errorbar', width = 0.6) + 
+  geom_boxplot(aes(fill = response), show.legend = FALSE) + 
+  labs(title = "Age vs. Response Comparison", y = "Age", x = "Response") +
+  theme_bw()
+ 
+ggsave("imagens/age_boxplot.jpg", plot = age_boxplot, width = 6, 
+       height = 4) 
+
+```
+
+```{r}
+# Histogram 
+age_plot <- df_cleaned %>% 
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 1, color = "gray", fill="navy") +
+  facet_wrap(vars(response), nrow = 2, scales = "free_y") +
+  labs(y = "Number of clients") + 
+  ggtitle("Age distribution")
+
+age_plot
+
+ggsave("imagens/age_plot.jpg", plot = age_plot, width = 6, 
+       height = 4) 
+```
+
+```{r}
+# Descriptive Statistics
+df_cleaned %>% 
+  select(age, response) %>% 
+  tbl_summary(by = response) %>% 
+  add_p()
+```
+
+Os jovens parecem estar menos interessados no seguro automóvel. A idade média dos clientes interessados é de 43 anos (AIQ: 35, 51), enquanto a mediana dos clientes não interessados é de 34 anos (AIQ: 24, 49).
+
+## H2) O Interesse pelo seguro de carro é maior entre as mulheres. ❌
+
+```{r}
+gender_plot <- df_cleaned %>% 
+  select(response, gender) %>% 
+  ggplot(aes(x = response)) +
+  geom_bar(aes(fill = gender), position = 'dodge') +
+  geom_text(aes(label = ..count.., fill= gender),vjust=-0.5, stat='count', position=position_dodge2(width = 0.9)) +
+  labs(title = "Gender vs. Response", 
+       x = "Response", y = "Number of customers") +
+  theme_bw()
+
+ggsave("imagens/gender_plot.png", plot = gender_plot)
+```
+
+```{r}
+df_cleaned %>% 
+  select(response, gender) %>% 
+  tbl_summary(by = response) %>% 
+  add_p()
+```
+
+Dos clientes interessados no seguro automóvel, 61% eram homens e 39% eram mulheres. Portanto, esta hipótese é FALSA. Embora o género e a resposta sejam estatisticamente significativos, i. e., estão relacionados.
+
+## **H3)** Os clientes que possuem carros mais novos têm maior probabilidade de se interessar pelo seguro automóvel**.** ❌
+
+```{r}
+car_age_plot <- df_cleaned %>% 
+  select(response, vehicle_age) %>% 
+  ggplot(aes(x = response)) +
+  geom_bar(aes(fill = vehicle_age), position = 'dodge') +
+  labs(title = "Vehicle Age vs. Response", 
+       x = "Response", y = "Number of customers") +
+  theme_bw()
+
+ggsave("imagens/car_age_plot.jpg", plot = car_age_plot)
+```
+
+```{r}
+df_cleaned %>% 
+  select(response, vehicle_age) %>% 
+  tbl_summary(by = response) %>% 
+  add_p()
+```
+
+Os clientes com automóveis com idade entre 1 e 2 anos têm maior probabilidade de se interessar pelo seguro automóvel (75%). Enquanto apenas 15% dos clientes interessados possuem carros mais novos.
+
+## **H4)** Clientes com danos anteriores no carro têm maior probabilidade de aceitar o seguro automóvel ✅
+
+```{r}
+car_damage_plot <- df_cleaned %>% 
+  select(response, vehicle_damage) %>% 
+  ggplot(aes(x = response)) +
+  geom_bar(aes(fill = vehicle_damage), position = 'dodge') +
+  labs(title = "Vehicle Damage vs. Response", 
+       x = "Response", y = "Number of customers") +
+  theme_bw()
+
+car_damage_plot
+
+ggsave("imagens/car_damage_plot.jpg", plot = car_damage_plot)
+```
+
+```{r}
+df_cleaned %>% 
+  select(response, vehicle_damage) %>% 
+  tbl_summary(by = response) %>% 
+  add_p()
+```
+
+Os clientes com danos anteriores no carro provavelmente estarão interessados no seguro automóvel, já que 98% disseram que sim.
+
+## **H5)** Clientes com seguro automóvel anterior têm maior probabilidade de aceitar o seguro automóvel ❌
+
+```{r}
+car_insurance_plot <- df_cleaned %>% 
+  select(response, previously_insured) %>% 
+  ggplot(aes(x = response)) +
+  geom_bar(aes(fill = previously_insured), position = 'dodge') +
+  labs(title = "Vehicle Previously Insured vs. Response", 
+       x = "Response", y = "Number of customers") +
+  theme_bw()
+car_insurance_plot
+ggsave("imagens/car_insurance_plot.jpg", plot = car_insurance_plot)
+```
+
+```{r}
+df_cleaned %>% 
+  select(response, previously_insured) %>% 
+  tbl_summary(by = response) %>% 
+  add_p()
+```
+
+Apenas 0,3% dos clientes interessados no seguro automóvel têm o automóvel previamente segurado.
+
+## **H6) O interesse é maior em clientes com maiores gastos anuais com saúde.** ❌
+
+```{r}
+# Boxplot
+expenses_boxplot <- df_cleaned %>% 
+  ggplot(aes(x = response, y = health_annual_paid)) +
+  stat_boxplot(geom = 'errorbar', width = 0.6) + 
+  geom_boxplot(aes(fill = response), show.legend = FALSE) + 
+  labs(title = "Annual Payment vs. Response Comparison", 
+       y = "Annual Payment", x = "Response") +
+  theme_bw()
+ 
+ggsave("imagens/expenses_boxplot.jpg", 
+       plot = expenses_boxplot, width = 6, 
+       height = 4) 
+
+# Histogram 
+expenses_plot <- df_cleaned %>% 
+  ggplot(aes(x = health_annual_paid)) +
+  geom_histogram(binwidth = 10000, color = "gray", fill="navy") +
+  facet_wrap(vars(response), nrow = 2, scales = "free_y") +
+  labs(y = "Number of clients") + 
+  ggtitle("Expenses distribution")
+
+expenses_plot
+
+ggsave("imagens/expenses_plot.jpg", plot = expenses_plot, 
+       width = 6, 
+       height = 4) 
+```
+
+```{r}
+# Descriptive Statistics
+df_cleaned %>% 
+  select(response, health_annual_paid) %>% 
+  tbl_summary(by = response) %>% 
+  add_p()
+```
+
+Embora o anual de saúde pago tenha se mostrado significativo, consideramos esta hipótese FALSA e investigaremos mais detalhadamente os valores discrepantes.
+
+## **H7) Clientes com seguro saúde há MAIS TEMPO têm maior probabilidade de se interessar por seguro automóvel** ❌
+
+```{r}
+# Boxplot
+days_boxplot <- df_cleaned %>% 
+  ggplot(aes(x = response, y = days_associated)) +
+  stat_boxplot(geom = 'errorbar', width = 0.6) + 
+  geom_boxplot(aes(fill = response), show.legend = FALSE) + 
+  labs(title = "Days associated vs. Response Comparison", 
+       y = "Days", x = "Response") +
+  theme_bw()
+ 
+ggsave("imagens/days_boxplot.jpg", 
+       plot = days_boxplot, width = 6, 
+       height = 4) 
+
+# Histogram 
+days_plot <- df_cleaned %>% 
+  ggplot(aes(x = days_associated)) +
+  geom_histogram(binwidth = 30, color = "gray", fill="navy") +
+  facet_wrap(vars(response), nrow = 2, scales = "free_y") +
+  labs(y = "Number of clients") + 
+  ggtitle("Days associated distribution")
+
+days_plot
+
+ggsave("days_plot.jpg", plot = days_plot, 
+       width = 6, 
+       height = 4) 
+```
+
+```{r}
+df_cleaned %>% 
+  select(response, days_associated) %>% 
+  tbl_summary(by = response) %>% 
+  add_p()
+```
+
+Esta hipótese é FALSA, basicamente os clientes interessados e os clientes não interessados têm a mesma quantidade de dias associados. Sim (mediana: 154 dias, AIQ: 82, 226); Não (154 dias, AIQ: 82, 227).
+
+## Conclusão da hipótese
+
+```{r}
+hypothesis <- c(
+  "H1) O interese pelo seguro de carro é maior em clientes mais velhos.", 
+  "H2) O Interesse pelo seguro de carro é maior entre as mulheres.",
+  "H3) Os clientes que possuem carros mais novos têm maior probabilidade de se interessar pelo seguro automóvel.",
+  "H4) Clientes com danos anteriores no carro têm maior probabilidade de aceitar o seguro automóvel",
+  "H5) Clientes com seguro automóvel anterior têm maior probabilidade de aceitar o seguro automóvel",
+  "H6) O interesse é maior em clientes com maiores gastos anuais com saúde.",
+  "H7) Clientes com seguro saúde há MAIS TEMPO têm maior probabilidade de se interessar por seguro automóvel"
+  )
+
+conclusion <- c(
+  "True", 
+  "False",
+  "False",
+  "True",
+  "False",
+  "False",
+  "False"
+)
+
+relevance <- c(
+  "High", 
+  "Medium",
+  "High",
+  "High",
+  "High",
+  "Low",
+  "Low"
+)
+
+hypothesis_table <- tibble(
+  hypothesis = hypothesis,
+  conclusion = conclusion,
+  relevance = relevance
+)
+
+kable(hypothesis_table, format = "html") %>% 
+  kableExtra::kable_styling(bootstrap_options = "striped",
+                            full_width = FALSE)
 ```
