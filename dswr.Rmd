@@ -293,6 +293,8 @@ age_boxplot <- df_cleaned %>%
   geom_boxplot(aes(fill = response), show.legend = FALSE) + 
   labs(title = "Age vs. Response Comparison", y = "Age", x = "Response") +
   theme_bw()
+
+age_boxplot
  
 ggsave("imagens/age_boxplot.jpg", plot = age_boxplot, width = 6, 
        height = 4) 
@@ -336,6 +338,8 @@ gender_plot <- df_cleaned %>%
        x = "Response", y = "Number of customers") +
   theme_bw()
 
+gender_plot
+
 ggsave("imagens/gender_plot.png", plot = gender_plot)
 ```
 
@@ -355,9 +359,12 @@ car_age_plot <- df_cleaned %>%
   select(response, vehicle_age) %>% 
   ggplot(aes(x = response)) +
   geom_bar(aes(fill = vehicle_age), position = 'dodge') +
+  geom_text(aes(label = ..count.., fill= vehicle_age),vjust=-0.5, stat='count', position=position_dodge2(width = 0.9)) +
   labs(title = "Vehicle Age vs. Response", 
        x = "Response", y = "Number of customers") +
   theme_bw()
+
+car_age_plot
 
 ggsave("imagens/car_age_plot.jpg", plot = car_age_plot)
 ```
@@ -378,6 +385,7 @@ car_damage_plot <- df_cleaned %>%
   select(response, vehicle_damage) %>% 
   ggplot(aes(x = response)) +
   geom_bar(aes(fill = vehicle_damage), position = 'dodge') +
+  geom_text(aes(label = ..count.., fill= vehicle_damage),vjust=-0.5, stat='count', position=position_dodge2(width = 0.9)) +
   labs(title = "Vehicle Damage vs. Response", 
        x = "Response", y = "Number of customers") +
   theme_bw()
@@ -403,10 +411,13 @@ car_insurance_plot <- df_cleaned %>%
   select(response, previously_insured) %>% 
   ggplot(aes(x = response)) +
   geom_bar(aes(fill = previously_insured), position = 'dodge') +
+  geom_text(aes(label = ..count.., fill= previously_insured),vjust=-0.5, stat='count', position=position_dodge2(width = 0.9)) +
   labs(title = "Vehicle Previously Insured vs. Response", 
        x = "Response", y = "Number of customers") +
   theme_bw()
+
 car_insurance_plot
+
 ggsave("imagens/car_insurance_plot.jpg", plot = car_insurance_plot)
 ```
 
@@ -465,7 +476,7 @@ Embora o anual de saúde pago tenha se mostrado significativo, consideramos esta
 ```{r}
 # Boxplot
 days_boxplot <- df_cleaned %>% 
-  ggplot(aes(x = response, y = days_associated)) +
+  ggplot(aes(x = response, y = day_associated)) +
   stat_boxplot(geom = 'errorbar', width = 0.6) + 
   geom_boxplot(aes(fill = response), show.legend = FALSE) + 
   labs(title = "Days associated vs. Response Comparison", 
@@ -478,7 +489,7 @@ ggsave("imagens/days_boxplot.jpg",
 
 # Histogram 
 days_plot <- df_cleaned %>% 
-  ggplot(aes(x = days_associated)) +
+  ggplot(aes(x = day_associated)) +
   geom_histogram(binwidth = 30, color = "gray", fill="navy") +
   facet_wrap(vars(response), nrow = 2, scales = "free_y") +
   labs(y = "Number of clients") + 
@@ -486,14 +497,14 @@ days_plot <- df_cleaned %>%
 
 days_plot
 
-ggsave("days_plot.jpg", plot = days_plot, 
+ggsave("imagens/days_plot.jpg", plot = days_plot, 
        width = 6, 
        height = 4) 
 ```
 
 ```{r}
 df_cleaned %>% 
-  select(response, days_associated) %>% 
+  select(response, day_associated) %>% 
   tbl_summary(by = response) %>% 
   add_p()
 ```
