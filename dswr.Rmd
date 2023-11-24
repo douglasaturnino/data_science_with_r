@@ -42,7 +42,7 @@ library(tidymodels)
 # Data Collection
 
 ```{r data_collection}
-df <- read_csv("datasets/train.csv")
+df <- read_csv("datasets/raw/train.csv")
 glimpse(df)
 ```
 
@@ -72,7 +72,7 @@ df1 <- janitor::clean_names(df) %>%
 glimpse(df1)
 
 # Save df_cleaned as RDS
-saveRDS(df1, "df_cleaned.rds")
+saveRDS(df1, "datasets/intermediary/df_cleaned.rds")
 ```
 
 ## Data Types
@@ -113,7 +113,7 @@ kable(df_description, format = "html") %>%
 
 ```{r}
 # Read_cleaned date
-df_cleaned = readRDS("df_cleaned.rds")
+df_cleaned = readRDS("datasets/intermediary/df_cleaned.rds")
 ```
 
 # . Check data structure so far
@@ -280,7 +280,7 @@ gridExtra::grid.arrange(gender_plt,driving_license_plt,
 
 ```{r}
 # Read df_cleaned
-df_cleaned <- readRDS("df_cleaned.rds")
+df_cleaned <- readRDS("datasets/intermediary/df_cleaned.rds")
 ```
 
 ## **H1) O interese pelo seguro de carro é maior em clientes mais velhos. ✅**
