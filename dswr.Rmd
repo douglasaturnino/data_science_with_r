@@ -587,3 +587,131 @@ ggsave("imagens/matrix_correlation_plot.jpg", matrix_correlation_plot,
 ```
 
 Não há forte correlação entre as variáveis numéricas.
+
+# Data Preparation
+
+-   Frequency encoding for policy_sales_channel \| Build Fincion
+
+-   Target encoding for gender e region_code \| Build Function
+
+## Targe encoding
+
+```{r}
+# For gender
+gender_encoder <- df_cleaned %>% 
+  mutate(response_num = ifelse(response == "yes", 1 ,0)) %>% 
+  group_by(gender) %>% 
+  summarise(gender_num = mean(response_num, na.rm = TRUE))
+
+# For region encoder
+region_encoder <- df_cleaned %>% 
+  mutate(response_num = ifelse(response == "yes", 1 ,0)) %>% 
+  group_by(region_code) %>% 
+  summarise(region_num = mean(response_num, na.rm = TRUE))
+
+# Save in rds
+saveRDS(gender_encoder, "parameter/gender_encoder.rds")
+saveRDS(region_encoder, "parameter/region_encoder.rds")
+```
+
+## Frequency encoding
+
+```{r}
+policy_encoder <- df_cleaned %>% 
+  group_by(policy_sales_channel) %>% 
+  summarise(policy_num=n()/nrow(df_cleaned))
+
+# Save in rds
+saveRDS(policy_encoder, "parameter/policy_encoder.rds")
+```
+
+-   Using the encoders in out dataset:
+
+```{r}
+#Create function
+encoder_function <- function(df){
+  df %>% 
+  left_join(gender_encoder) %>% 
+  select(-gender) %>% 
+  rename(gender = gender_num) %>% 
+
+  left_join(region_encoder) %>% 
+  select(-region_code) %>% 
+  rename(region_code = region_num) %>% 
+
+  left_join(policy_encoder) %>% 
+  select(-policy_sales_channel) %>% 
+  rename(policy_sales_channel = policy_num)
+}
+  
+```
+
+```{r}
+# Save function in rds
+saveRDS(encoder_function, "parameter/encoder_function.rsd")
+```
+
+## Splitting into train and test datasets
+
+```{r}
+df_cleaned <- readRDS("datasets/intermediary/df_cleaned.rds")
+encoder_function <- readRDS("parameter/encoder_function.rsd")
+df_preprocessed <- encoder_function(df_cleaned)
+```
+
+```{r}
+set.seed(123)
+
+```
+
+```{r}
+df_split <- df_preprocessed %>% 
+  initial_split(prop=0.75, strata = response)
+
+df_train <- df_split %>% 
+  training()
+
+df_test <- df_split %>% 
+  testing()
+```
+
+-   check response proportions:
+
+```{r}
+df_train %>% 
+  select(response) %>% 
+  tbl_summary(type = list(response ~ "categorical"))
+
+df_test %>% 
+  select(response) %>% 
+  tbl_summary(type = list(response ~ "categorical"))
+```
+
+-   Using tidmodels steps to continue the preprocessing:
+
+```{r}
+df_recipe <- recipe(response ~.,
+       data = df_train) %>% 
+  step_normalize (age, day_associated) %>% 
+  step_scale(health_annual_paid) %>% 
+  step_dummy(all_nominal(), - all_outcomes()) 
+```
+
+-   appluing the recipe:
+
+```{r}
+# train the recipe 
+df_train_prep <- df_recipe %>% 
+  prep(training = df_train)
+
+df_train_precessed <- df_train_prep %>% 
+  bake(new_data = df_train)
+```
+
+```{r}
+# For the test dataset
+df_test_precessed <- df_train_prep %>% 
+  bake(new_data = df_test)
+```
+
+# 
