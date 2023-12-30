@@ -662,9 +662,6 @@ df_preprocessed <- encoder_function(df_cleaned)
 ```{r}
 set.seed(123)
 
-```
-
-```{r}
 df_split <- df_preprocessed %>% 
   initial_split(prop=0.75, strata = response)
 
@@ -714,4 +711,63 @@ df_test_precessed <- df_train_prep %>%
   bake(new_data = df_test)
 ```
 
-# 
+# Feature selection
+
+```{r}
+predictors <- df_train_precessed %>% 
+  select(-id, -response)
+
+target <- df_train_precessed$response
+```
+
+```{r}
+start_time <- Sys.time()
+
+rf_model <- randomForest(predictors, target, ntree = 10,
+                         importance = TRUE)
+
+end_time <- Sys.time()
+
+print(end_time - start_time)
+```
+
+-   Show results:
+
+```{r}
+importance(rf_model) 
+```
+
+```{r}
+varImpPlot(rf_model)
+```
+
+In this first cycle we are going to select the seven most important variables according to the Mean Decrease Gini:
+
+```{r}
+importance(rf_model) %>% 
+  as_tibble(rownames = "rowname") %>% 
+  arrange(desc(MeanDecreaseGini)) %>% 
+  select(rowname) %>% 
+  slice(1:7) %>% 
+  pull()
+```
+
+```{r}
+selected_columns <- c(
+  "age", 
+  "vehicle_damage", 
+  "day_associated",
+  "previously_insured",
+  "health_annual_paid", 
+  "policy_sales_channel",
+  "region_code",
+  "response")
+```
+
+```{r}
+# Final dataset
+df_selected <- df_cleaned %>% 
+  select(all_of(selected_columns))
+
+saveRDS(df_selected, "datasets/intermediary/df_selected.rds")
+```
