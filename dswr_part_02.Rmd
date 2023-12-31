@@ -1,0 +1,128 @@
+---
+title: "Data Science With R - part 02"
+author: "Douglas Saturnino"
+date: "`r format(Sys.time(), '%d/%m/%Y')`"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    highlight: textmate
+    logo: logo.png
+    theme: jou
+    number_sections: yes
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+    df_print: paged
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Imports
+
+```{r pacotes}
+library(tidyverse)
+library(janitor)
+library(readr)
+library(gtsummary)
+library(summarytools)
+library(kableExtra)
+library(knitr)
+library(gridExtra)
+library(summarytools)
+library(randomForest)
+library(reshape2)
+library(tidymodels)
+```
+
+# Data
+
+```{r}
+df <- read_rds("datasets/intermediary/df_cleaned.rds")
+
+selected_columns <- c(
+  "id",
+  "age", 
+  "vehicle_damage", 
+  "day_associated",
+  "previously_insured",
+  "health_annual_paid", 
+  "policy_sales_channel",
+  "region_code",
+  "response")
+
+df_selected <- df %>% 
+  select(all_of(selected_columns))
+
+#saveRDS(df_selected, "datasets/intermediary/df_selected.rds")
+```
+
+# Pre-processing
+
+```{r}
+
+region_encoder <- readRDS("parameter/region_encoder.rds")
+policy_encoder <- readRDS("parameter/policy_encoder.rds")
+#Create function
+encoder_function <- function(df){
+  df %>% 
+  left_join(region_encoder) %>% 
+  select(-region_code) %>% 
+  rename(region_code = region_num) %>% 
+
+  left_join(policy_encoder) %>% 
+  select(-policy_sales_channel) %>% 
+  rename(policy_sales_channel = policy_num)
+}
+  
+```
+
+```{r}
+df_selected <- encoder_function(df_selected)
+```
+
+## split into train and test datasets
+
+```{r}
+set.seed(123)
+df_split <- df_selected %>% 
+  initial_split(prop = 0.80, strata = response)
+
+df_train <- df_split %>% 
+  training()
+
+df_test <- df_split %>% 
+  testing()
+
+#Taking a look on the dataset
+df_train
+```
+
+## Applying steps
+
+```{r}
+df_recipe <- recipe(response ~ .,
+       data = df_train %>% select(-id)) %>% 
+  step_normalize(age, day_associated) %>% 
+  step_scale(health_annual_paid) %>% 
+  step_dummy(all_nominal(), -all_outcomes())
+  
+```
+
+```{r}
+# Train the recipe 
+df_prep <- df_recipe %>% 
+  prep(training = df_train)
+
+df_train_preprocessed <- df_prep %>% 
+  bake(new_data = df_train)
+
+df_test_preprocessed <- df_prep %>% 
+  bake(new_data = df_test)
+```
+
+# 
