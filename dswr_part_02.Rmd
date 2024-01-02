@@ -244,3 +244,66 @@ gain_curve(lr_results, response, .pred_yes) %>%
 lift_curve(lr_results, response, .pred_yes) %>% 
   autoplot()
 ```
+
+# Decision Tree
+
+```{r}
+# Model Specification 
+dt_model <- decision_tree(tree_depth = 10) %>% 
+  set_engine('rpart') %>% 
+  set_mode('classification')
+
+# Model Fitting
+start_time <- Sys.time()
+
+dt_fit <- dt_model %>% 
+  fit(response ~., 
+      data= df_train_preprocessed)
+
+end_time <- Sys.time()
+
+print(end_time - start_time)
+```
+
+```{r}
+# Prediction
+class_preds <- dt_fit %>% 
+  predict(new_data = df_test_preprocessed,
+          type = 'class')
+
+prob_preds <- dt_fit %>% 
+  predict(new_data = df_test_preprocessed,
+          type = 'prob')
+
+# Combine results
+dt_results <- df_test %>% 
+  select(id, response) %>% 
+  bind_cols(class_preds, prob_preds)
+
+# Confusion Matrix
+confusion_matrix_dt <- conf_mat(
+  dt_results, truth = response, estimate = .pred_class
+)
+```
+
+```{r}
+# Metrics @K
+final_metrics_at_k(dt_results, 2000)
+```
+
+```{r}
+# Gain and Lift Curves
+gain_curve(dt_results, response, .pred_yes) %>% 
+  autoplot()
+
+lift_curve(dt_results, response, .pred_yes) %>% 
+  autoplot()
+```
+
+```{r}
+dt_results %>% 
+  select(.pred_yes, .pred_no) %>%
+  summary()
+```
+
+As probabilities are constant throughout the rows the is no way to calculate gain and lift. So, this is not good model to rank our clients.
