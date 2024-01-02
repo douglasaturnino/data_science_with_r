@@ -39,6 +39,57 @@ library(reshape2)
 library(tidymodels)
 ```
 
+# Helper Functions
+
+```{r functions}
+# Top @k precision and recall function
+metrics_at_k_function <- function(model_results, k){
+  
+  df_results <- model_results %>% 
+    arrange(desc(.pred_yes)) %>% 
+      mutate(
+        TP = ifelse(.pred_class == "yes" & response == "yes", 1, 0),
+        FP = ifelse(.pred_class == "yes" & response == "no", 1, 0),
+        FN = ifelse(.pred_class == "no" & response == "yes", 1, 0),
+        TN = ifelse(.pred_class == "no" & response == "no", 1, 0)
+    )
+  
+  # Create list for  precision and recall
+  precision_at_k <- list()
+  recall_at_k <- list()
+  
+  # Populate the metric list
+  for (i in 1:k){
+    subset_k <- df_results %>% 
+      dplyr_row_slice(1: i)
+    
+    precision_at_k[[i]] <- (subset_k$TP %>% sum())/(subset_k$TP %>% sum() + 
+                                               subset_k$FP %>% sum())
+    
+    recall_at_k[[i]] <- (subset_k$TP %>% sum())/(subset_k$TP %>% sum() + 
+                                               subset_k$FN %>% sum())
+  }
+  
+  metrics_at_k <- df_results %>% 
+    dplyr_row_slice(1:k) %>% 
+    mutate(
+      precision_at_k = unlist(precision_at_k),
+      recall_at_k = unlist( recall_at_k)
+    )
+  return (metrics_at_k)
+}
+
+# Final metrics @k Function
+final_metrics_at_k <- function(model_results, k){
+  # Calculating metrics @k
+  model_metrics_at_k <- metrics_at_k_function(model_results, k)
+
+  model_metrics_at_k %>% 
+    slice(k) %>% 
+    select(precision_at_k, recall_at_k)
+}
+```
+
 # Data
 
 ```{r}
@@ -172,58 +223,9 @@ confusion_matrix_lr <- conf_mat(
 )
 ```
 
-## Top @k precision and recall
-
 ```{r}
+# Calculating metrics @k
 
-# creating function
-metrics_at_k_function <- function(model_results, k){
-  
-  df_results <- model_results %>% 
-    arrange(desc(.pred_yes)) %>% 
-      mutate(
-        TP = ifelse(.pred_class == "yes" & response == "yes", 1, 0),
-        FP = ifelse(.pred_class == "yes" & response == "no", 1, 0),
-        FN = ifelse(.pred_class == "no" & response == "yes", 1, 0),
-        TN = ifelse(.pred_class == "no" & response == "no", 1, 0)
-    )
-  
-  # Create list for  precision and recall
-  precision_at_k <- list()
-  recall_at_k <- list()
-  
-  # Populate the metric list
-  for (i in 1:k){
-    subset_k <- df_results %>% 
-      dplyr_row_slice(1: i)
-    
-    precision_at_k[[i]] <- (subset_k$TP %>% sum())/(subset_k$TP %>% sum() + 
-                                               subset_k$FP %>% sum())
-    
-    recall_at_k[[i]] <- (subset_k$TP %>% sum())/(subset_k$TP %>% sum() + 
-                                               subset_k$FN %>% sum())
-  }
-  
-  metrics_at_k <- df_results %>% 
-    dplyr_row_slice(1:k) %>% 
-    mutate(
-      precision_at_k = unlist(precision_at_k),
-      recall_at_k = unlist( recall_at_k)
-    )
-  return (metrics_at_k)
-}
-```
-
-```{r}
-
-final_metrics_at_k <- function(model_results, k){
-  # Calculating metrics @k
-  model_metrics_at_k <- metrics_at_k_function(model_results, k)
-
-  model_metrics_at_k %>% 
-    slice(k) %>% 
-    select(precision_at_k, recall_at_k)
-}
 lr_final_at_k_metrics <- tibble(
   model= "Logistic Regression"
   ) %>% 
@@ -244,6 +246,10 @@ gain_curve(lr_results, response, .pred_yes) %>%
 lift_curve(lr_results, response, .pred_yes) %>% 
   autoplot()
 ```
+
+Gain: By approaching 25% of the ordered list , \~ 60% of all interested clients are reached.
+
+Lift: By approaching 25% of the ordered list , the model performed \~2.3 times better than a random list.
 
 # Decision Tree
 
@@ -287,8 +293,12 @@ confusion_matrix_dt <- conf_mat(
 ```
 
 ```{r}
-# Metrics @K
-final_metrics_at_k(dt_results, 2000)
+# Calculating metrics @k
+dt_final_at_k_metrics <- tibble(
+  model= "Decision tree"
+  ) %>% 
+  bind_cols(final_metrics_at_k(dt_results, 2000))
+dt_final_at_k_metrics
 ```
 
 ```{r}
@@ -354,8 +364,12 @@ confusion_matrix_rf <- conf_mat(
 ```
 
 ```{r}
-# Metrics @K
-final_metrics_at_k(rf_results, 2000)
+# Calculating metrics @k
+rf_final_at_k_metrics <- tibble(
+  model= "Random Forest"
+  ) %>% 
+  bind_cols(final_metrics_at_k(rf_results, 2000))
+rf_final_at_k_metrics
 ```
 
 ```{r}
@@ -365,4 +379,18 @@ gain_curve(rf_results, response, .pred_yes) %>%
 
 lift_curve(rf_results, response, .pred_yes) %>% 
   autoplot()
+```
+
+Gain: By approaching 25% of the ordered list , \~ 64% of all interested clients are reached.
+
+Lift: By approaching 25% of the ordered list , the model performed \~2.3 times better than a random list.
+
+# Model Comparison
+
+```{r}
+rf_final_at_k_metrics %>% 
+  bind_rows(
+    dt_final_at_k_metrics, 
+    lr_final_at_k_metrics)%>% 
+  arrange(desc(recall_at_k))
 ```
