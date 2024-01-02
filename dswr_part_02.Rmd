@@ -307,3 +307,62 @@ dt_results %>%
 ```
 
 As probabilities are constant throughout the rows the is no way to calculate gain and lift. So, this is not good model to rank our clients.
+
+# Random Forest
+
+```{r}
+# Model Specification 
+rf_model <- rand_forest(
+    mtry = 3,
+    trees = 1000,
+    min_n = 100
+    ) %>% 
+  set_engine('ranger') %>% 
+  set_mode('classification')
+
+# Model Fitting
+start_time <- Sys.time()
+
+rf_fit <- rf_model %>% 
+  fit(response ~., 
+      data= df_train_preprocessed)
+
+end_time <- Sys.time()
+
+print(end_time - start_time)
+```
+
+```{r}
+# Prediction
+class_preds <- rf_fit %>% 
+  predict(new_data = df_test_preprocessed,
+          type = 'class')
+
+prob_preds <- rf_fit %>% 
+  predict(new_data = df_test_preprocessed,
+          type = 'prob')
+
+# Combine results
+rf_results <- df_test %>% 
+  select(id, response) %>% 
+  bind_cols(class_preds, prob_preds)
+
+# Confusion Matrix
+confusion_matrix_rf <- conf_mat(
+  rf_results, truth = response, estimate = .pred_class
+)
+```
+
+```{r}
+# Metrics @K
+final_metrics_at_k(rf_results, 2000)
+```
+
+```{r}
+# Gain and Lift Curves
+gain_curve(rf_results, response, .pred_yes) %>% 
+  autoplot()
+
+lift_curve(rf_results, response, .pred_yes) %>% 
+  autoplot()
+```
