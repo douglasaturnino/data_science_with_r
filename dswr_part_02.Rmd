@@ -185,7 +185,7 @@ logistic_model <- logistic_reg() %>%
   set_mode('classification')
 ```
 
-```{r}
+```{r, eval=FALSE}
 # Model Fitting
 start_time <- Sys.time()
 
@@ -196,9 +196,13 @@ logistic_fit <- logistic_model %>%
 end_time <- Sys.time()
 
 print(end_time - start_time)
+
+saveRDS(logistic_fit, "model/logistic_fit.rds")
 ```
 
 ```{r}
+logistic_fit <- readRDS("model/logistic_fit.rds")
+
 # Prediction
 class_preds <- logistic_fit %>% 
   predict(new_data = df_test_preprocessed,
@@ -207,16 +211,12 @@ class_preds <- logistic_fit %>%
 prob_preds <- logistic_fit %>% 
   predict(new_data = df_test_preprocessed,
           type = 'prob')
-```
 
-```{r}
 # Combine results
 lr_results <- df_test %>% 
   select(id, response) %>% 
   bind_cols(class_preds, prob_preds)
-```
 
-```{r}
 # Confusion Matrix
 confusion_matrix_lr <- conf_mat(
   lr_results, truth = response, estimate = .pred_class
@@ -253,7 +253,7 @@ Lift: By approaching 25% of the ordered list , the model performed \~2.3 times b
 
 # Decision Tree
 
-```{r}
+```{r, eval=FALSE}
 # Model Specification 
 dt_model <- decision_tree(tree_depth = 10) %>% 
   set_engine('rpart') %>% 
@@ -269,9 +269,13 @@ dt_fit <- dt_model %>%
 end_time <- Sys.time()
 
 print(end_time - start_time)
+
+saveRDS(dt_fit, "model/dt_fit.rds")
 ```
 
 ```{r}
+dt_fit <- readRDS("model/dt_fit.rds")
+
 # Prediction
 class_preds <- dt_fit %>% 
   predict(new_data = df_test_preprocessed,
@@ -320,7 +324,7 @@ As probabilities are constant throughout the rows the is no way to calculate gai
 
 # Random Forest
 
-```{r}
+```{r, eval=FALSE}
 # Model Specification 
 rf_model <- rand_forest(
     mtry = 3,
@@ -340,9 +344,13 @@ rf_fit <- rf_model %>%
 end_time <- Sys.time()
 
 print(end_time - start_time)
+
+saveRDS(rf_fit, "model/rf_fit.rds")
 ```
 
 ```{r}
+rf_fit <- readRDS("model/rf_fit.rds")
+
 # Prediction
 class_preds <- rf_fit %>% 
   predict(new_data = df_test_preprocessed,
@@ -387,7 +395,7 @@ Lift: By approaching 25% of the ordered list , the model performed \~2.3 times b
 
 # XGboost
 
-```{r}
+```{r, eval=FALSE}
 # Model Specification 
 xgb_model <- boost_tree(
   mtry = 6,
@@ -397,7 +405,7 @@ xgb_model <- boost_tree(
   loss_reduction = 0.01,
   sample_size = 0.27
     ) %>% 
-  set_engine('xgbboost') %>% 
+  set_engine('xgboost') %>% 
   set_mode('classification')
 
 # Model Fitting
@@ -410,9 +418,13 @@ xgb_fit <- xgb_model %>%
 end_time <- Sys.time()
 
 print(end_time - start_time)
+
+saveRDS(xgb_fit, "model/xgb_fit.rds")
 ```
 
 ```{r}
+xgb_fit <- readRDS("model/xgb_fit.rds")
+
 # Prediction
 class_preds <- xgb_fit %>% 
   predict(new_data = df_test_preprocessed,
@@ -451,9 +463,9 @@ lift_curve(xgb_results, response, .pred_yes) %>%
   autoplot()
 ```
 
-Gain: By approaching 25% of the ordered list , \~ 64% of all interested clients are reached.
+Gain: By approaching 25% of the ordered list , \~ 62% of all interested clients are reached.
 
-Lift: By approaching 25% of the ordered list , the model performed \~2.3 times better than a random list.
+Lift: By approaching 25% of the ordered list , the model performed \~2.4 times better than a random list.
 
 # Model Comparison
 
