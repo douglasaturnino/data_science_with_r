@@ -467,6 +467,76 @@ Gain: By approaching 25% of the ordered list , \~ 62% of all interested clients 
 
 Lift: By approaching 25% of the ordered list , the model performed \~2.4 times better than a random list.
 
+# KNN
+
+```{r eval=FALSE}
+# Model Specification 
+knn_model <- nearest_neighbor(
+  weight_func = "rectangular",
+  neighbors = 3
+  ) %>% 
+  set_engine('kknn') %>% 
+  set_mode('classification')
+
+# Model Fitting
+start_time <- Sys.time()
+
+knn_fit <- knn_model %>% 
+  fit(response ~., 
+      data= df_train_preprocessed)
+
+end_time <- Sys.time()
+
+print(end_time - start_time)
+
+saveRDS(knn_fit, "model/knn_fit.rds")
+```
+
+```{r}
+knn_fit <- readRDS("model/knn_fit.rds")
+
+# Prediction
+class_preds <- knn_fit %>% 
+  predict(new_data = df_test_preprocessed,
+          type = 'class')
+
+prob_preds <- knn_fit %>% 
+  predict(new_data = df_test_preprocessed,
+          type = 'prob')
+
+# Combine results
+knn_results <- df_test %>% 
+  select(id, response) %>% 
+  bind_cols(class_preds, prob_preds)
+
+# Confusion Matrix
+confusion_matrix_knn <- conf_mat(
+  knn_results, truth = response, estimate = .pred_class
+)
+```
+
+```{r}
+# Calculating metrics @k
+knn_final_at_k_metrics <- tibble(
+  model= "KNN"
+  ) %>% 
+  bind_cols(final_metrics_at_k(knn_results, 2000))
+knn_final_at_k_metrics
+```
+
+```{r}
+# Gain and Lift Curves
+gain_curve(knn_results, response, .pred_yes) %>% 
+  autoplot()
+
+lift_curve(knn_results, response, .pred_yes) %>% 
+  autoplot()
+```
+
+Gain: By approaching 25% of the ordered list , \~ 62% of all interested clients are reached.
+
+Lift: By approaching 25% of the ordered list , the model performed \~2.2 times better than a random list.
+
 # Model Comparison
 
 ```{r}
@@ -474,6 +544,7 @@ rf_final_at_k_metrics %>%
   bind_rows(
     dt_final_at_k_metrics, 
     lr_final_at_k_metrics,
-    xgb_final_at_k_metrics) %>% 
+    xgb_final_at_k_metrics,
+    knn_final_at_k_metrics) %>% 
   arrange(desc(recall_at_k))
 ```
