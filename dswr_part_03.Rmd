@@ -608,7 +608,7 @@ knn_tune <- tune_grid(
 end_time <- Sys.time()
 
 print(end_time - start_time )
-saveRDS(knn_tune, "modek/knn_tune.rds")
+saveRDS(knn_tune, "model/knn_tune.rds")
 ```
 
 ```{r}
@@ -643,7 +643,7 @@ saveRDS(knn_res, "knn_res.rds")
 
 ```{r}
 # Confusion matrix -----------------
-knn_res <- readRDS("knn_res.rds")
+knn_res <- readRDS("model/knn_res.rds")
 
 knn_conf_mat <- knn_res %>% 
   unnest(.predictions) %>% 
@@ -704,7 +704,7 @@ saveRDS(final_model, "model/final_model.rds")
 
 ```{r}
 # Read the final model
-model <- readRDS("final_model.rds")
+model <- readRDS("model/final_model.rds")
 ```
 
 ## Make predictions
