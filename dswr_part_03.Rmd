@@ -469,7 +469,7 @@ Gain:By approaching 25% of the ordered list, \~ 62% of all interested clients ar
 
 Lift: By approaching 25% of the ordered list, the model performs \~ 2.7 times better than the random list.
 
-# XGBoost 
+# XGBoost
 
 ```{r}
 # Model specification ----------------
@@ -577,7 +577,7 @@ Gain:By approaching 25% of the ordered list, \~ 63% of all interested clients ar
 
 Lift: By approaching 25% of the ordered list, the model performs \~ 2.8 times better than the random list.
 
-# KNN 
+# KNN
 
 ```{r}
 # Model specification ----------------
@@ -608,11 +608,11 @@ knn_tune <- tune_grid(
 end_time <- Sys.time()
 
 print(end_time - start_time )
-saveRDS(knn_tune, "knn_tune.rds")
+saveRDS(knn_tune, "modek/knn_tune.rds")
 ```
 
 ```{r}
-knn_tune <- readRDS("knn_tune.rds")
+knn_tune <- readRDS("model/knn_tune.rds")
 
 # Select the best hyperparameters ---------------
 knn_param <- knn_tune %>% 
@@ -672,4 +672,88 @@ Gain:By approaching 25% of the ordered list, \~ 62.5% of all interested clients 
 
 Lift: By approaching 25% of the ordered list, the model performs \~ 2.5 times better than the random list.
 
-# 
+# Model Comparison
+
+```{r}
+models_df <- bind_rows(
+  lr_metrics_at_k,
+  tree_metrics_at_k,
+  rf_metrics_at_k,
+  xgb_metrics_at_k,
+  knn_metrics_at_k
+) %>% 
+  arrange(desc(recall_at_k))
+models_df
+```
+
+The KNN model was the one that performed better in this cicle. So, it will be selected as our final model to make predictions for new clients.
+
+# Save final model
+
+```{r, eval=FALSE}
+start_time <- Sys.time()
+doParallel::registerDoParallel()
+
+final_model <- fit(knn_wkfl, df_selected)
+
+end_time <- Sys.time()
+print(end_time - start_time)
+
+saveRDS(final_model, "model/final_model.rds")
+```
+
+```{r}
+# Read the final model
+model <- readRDS("final_model.rds")
+```
+
+## Make predictions
+
+```{r}
+model$pre$mold$predictors %>% 
+  colnames() %>% 
+  tibble()
+```
+
+```{r}
+clients <- tibble(
+  "age" = 18,                  
+  "days_associated" = 299,      
+  "health_annual_paid" = 60000,   
+  "region_code" = 28,           
+  "policy_sales_channel" = 100, 
+  "vehicle_damage" = "yes",     
+  "previously_insured" = "no"
+)
+
+# Test for more than one client
+clients2 <- df[1:100,]
+selected <- c("id", names(clients))
+
+clients2 <- clients2 %>% 
+  select(one_of(selected))
+```
+
+```{r}
+predict_one <- predict(model, clients, type = "prob")
+predict_one
+```
+
+```{r}
+pred_yes <- predict_one %>% 
+  select(.pred_yes) %>% 
+  pull()
+
+pred_yes
+```
+
+```{r}
+predict_clients <- predict(model, 
+                           clients2 %>% select(-id), 
+                           type = "prob")
+
+predict_clients <- clients2 %>% 
+  select(id) %>% 
+  bind_cols(predict_clients) %>% 
+  arrange(desc(.pred_yes))
+```
