@@ -718,7 +718,7 @@ model$pre$mold$predictors %>%
 ```{r}
 clients <- tibble(
   "age" = 18,                  
-  "days_associated" = 299,      
+  "day_associated" = 299,      
   "health_annual_paid" = 60000,   
   "region_code" = 28,           
   "policy_sales_channel" = 100, 
