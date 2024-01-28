@@ -120,7 +120,7 @@ Agora será mostrado o relatório com as análises e responder as perguntas de n
 **Hypothesis 01:**
 O interese pelo seguro de carro é maior em clientes mais velhos. ✅
 
-<img src="https://gist.github.com/assets/95532957/f97ab01a-af68-4ef9-93a6-b2343a476deb" title="age vs response" lign="center" 
+<img src="imagens/age_boxplot.jpg" title="age vs response" lign="center" 
 height="400" class="center"/>
 
 **True/False.**
@@ -131,7 +131,7 @@ Hipotese verdadeira. Os jovens parecem estar menos interessados no seguro autom�
 
 Os clientes que possuem carros mais novos têm maior probabilidade de se interessar pelo seguro automóvel. ❌
 
-<img src="https://gist.github.com/assets/95532957/c519b641-7734-4c20-9bb9-5008f72700e3" title="Vehicle age vs response" lign="center" 
+<img src="imagens/car_age_plot.jpg" title="Vehicle age vs response" lign="center" 
 height="400" class="center"/>
 
 **True/False.**
@@ -142,7 +142,7 @@ Hipotese falsa. Os clientes com automóveis com idade entre 1 e 2 anos têm maio
 
 Clientes com danos anteriores no carro têm maior probabilidade de aceitar o seguro automóvel ✅
 
-<img src="https://gist.github.com/assets/95532957/2dd0ea72-ea41-424e-b03d-8fa3eddfb13c" title="Previously Insured vs response" 
+<img src="imagens/car_insurance_plot.jpg" title="Previously Insured vs response" 
 lign="center" height="400" class="center"/>
 
 Hipotese verdadeira. Os clientes com danos anteriores no carro provavelmente estarão interessados no seguro automóvel, já que 98% disseram que sim.
