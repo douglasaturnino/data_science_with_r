@@ -128,37 +128,44 @@ server <- function(input, output) {
   
   # Run the model
   output$table <- renderDT({
-    result <- predict(model, data() %>% select(-id), type= "prob")
-    
-    predict_clients <- data() %>% 
-      select(id) %>% 
-      bind_cols(result) %>% 
-      arrange(desc(.pred_yes))
-    
-    datatable(
-      predict_clients[1:input$numRows,]
-    )
+    predict_clients <- predict_clients()
   })
+  
+  # Predict customers
+  result <- function(){ 
+    return (predict(model, data() %>% select(-id), type= "prob"))
+  }
+  
+  # returns the table with predictions
+  predict_clients <- function(){
+    return (
+    data() %>% 
+    select(id) %>% 
+    bind_cols(result()) %>% 
+    arrange(desc(.pred_yes))
+    )
+  }
   
   output$download_csv <- downloadHandler(
     filename = function() {
-      "data.csv"
+      "car insurannce.csv"
     },
     content = function(file) {
-      # Escreve os dados em um arquivo CSV
-      write.csv(data(), file)
+      # Write all predict_clients data to the csv file
+      write.csv(predict_clients(), file, row.names = FALSE)
     }
   )
   
   output$download_excel <- downloadHandler(
     filename = function() {
-      "data.xlsx"
+      "car insurannce.xlsx"
     },
     content = function(file) {
-      # Escreve os dados em um arquivo Excel
-      write.xlsx(data(), file)
+      # Write all predict_clients data to the Excel file
+      openxlsx::write.xlsx(predict_clients(), file, rownames = FALSE)
     }
   )
+  
 }
 
 # App -------------------------------
