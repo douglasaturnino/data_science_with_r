@@ -3,6 +3,9 @@ library(shiny)
 library(shinydashboard)
 library(tidyverse)
 library(tidymodels)
+library(kknn)
+library(DT)
+library(openxlsx)
 
 # Model ----------------------------
 model <- readRDS("final_model.rds")
@@ -13,6 +16,7 @@ model <- readRDS("final_model.rds")
 header <- dashboardHeader(title="Car Insurance")
 
 ## SIDEBAR -------------------------
+
 sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem("Single Client", tabName = "single_client_tab", icon= icon("hospital")),
@@ -22,23 +26,53 @@ sidebar <- dashboardSidebar(
 )
 
 ## BODY ----------------------------
+
 body <- dashboardBody(
-  # single Client ------------------
-  tabItem(
-    tabName = "single_client_tab",
-    h1("Single Client"),
-    box(
-      title = "Probability to accept the car insurance",
-      width = 8, solidHeader = TRUE, status = "primary",
-      valueBoxOutput("prediction")
+  # Add a CSS class to the dashboardBody
+  tags$style(HTML(".content-wrapper, .right-side { overflow-y: auto; }")),
+  tabItems(
+    # single Client -----------------
+    tabItem(
+      tabName = "single_client_tab",
+      h1("Single Client"),
+      box(
+        title = "Probability to accept the car insurance",
+        width = 8, solidHeader = TRUE, status = "primary",
+        valueBoxOutput("prediction")
+      ),
+      box(sliderInput("day_associated", label = h3("Days Associated"), min = 10, max = 299, value = 154)),
+      box(sliderInput("health_annual_paid", label = h3("Health Annual Paid"), min = 2630, max = 540165, value = 31669)),
+      box(selectInput("previously_insured", label = h3("Previously Insured"), choices = , c("yes", "no"), selected = "yes")),
+      box(sliderInput("age", label = h3("Age"), min = 20, max = 85, value = 35)),
+      box(selectInput("vehicle_damage", label = h3("Vehicle Damage"), choices = , c("yes", "no"), selected = "yes")),
+      box(sliderInput("region_code", label = h3("Region Code"), min = 0, max = 52, value = 28)),
+      box(sliderInput("policy_sales_channel", label = h3("Policy Sales Channel"), min = 1, max = 163, value = 133)),
     ),
-    box(sliderInput("day_associated", label = h3("Days Associated"), min = 10, max = 299, value = 154)),
-    box(sliderInput("health_annual_paid", label = h3("Health Annual Paid"), min = 2630, max = 540165, value = 31669)),
-    box(selectInput("previously_insured", label = h3("Previously Insured"), choices = , c("yes", "no"), selected = "yes")),
-    box(sliderInput("age", label = h3("Age"), min = 20, max = 85, value = 35)),
-    box(selectInput("vehicle_damage", label = h3("Vehicle Damage"), choices = , c("yes", "no"), selected = "yes")),
-    box(sliderInput("region_code", label = h3("Region Code"), min = 0, max = 52, value = 28)),
-    box(sliderInput("policy_sales_channel", label = h3("Policy Sales Channel"), min = 1, max = 163, value = 133)),
+    
+    # Group of Clients----------------
+    tabItem(
+      tabName = "group_tab",
+      h1("Group of Clients"),
+      dashboardBody(
+        fileInput("file", label = h3("Choose CSV File "), accept = c(".csv")),
+        numericInput("numRows", label = h3("Number of Clients to Call:"), value = 5),
+        tags$hr(),
+        downloadButton("download_csv", "Download CSV"),
+        downloadButton("download_excel", "Download Excel"),
+        tags$hr(),
+        DTOutput("table")
+        
+      )
+    ),
+    # About --------------------------
+    tabItem(
+      tabName = "about_tab",
+      h1("About"),
+      p("This dashboard offers three tabs where you can find out if a user is a potential car insurance customer."),
+      p("In the first tab you can define information about a customer and the output will be the probability of purchasing insurance."),
+      p("In the second tab you can upload a csv file, and you will have an ordered list of potential customers to call and offer car insurance. You can download the output as csv or excel file."),
+      p("You can find more information about the project on" , a(href = "https://github.com/douglasaturnino/data_science_with_r", "GitHub", target="_blank"), ".")
+    )
   )
 )
 
@@ -53,7 +87,7 @@ ui <- dashboardPage(
 server <- function(input, output) {
   
   output$prediction <- renderValueBox({
-    # Create user table
+    # Create user table -------------
     clients <- tibble(
       "age" = input$age,                  
       "day_associated" = input$day_associated,      
@@ -63,7 +97,7 @@ server <- function(input, output) {
       "vehicle_damage" = input$vehicle_damage,     
       "previously_insured" = input$previously_insured
     )
-    # Make predicttion --------------
+    # Make predicttion ---------------
     prediction <- predict(model, clients, type= "prob")
     
     pred_yes <- prediction %>% 
@@ -85,6 +119,46 @@ server <- function(input, output) {
     )
     
   })
+  
+  # Save the .csv file
+  data <- reactive({
+    req(input$file)
+    read.csv(input$file$datapath)
+  })
+  
+  # Run the model
+  output$table <- renderDT({
+    result <- predict(model, data() %>% select(-id), type= "prob")
+    
+    predict_clients <- data() %>% 
+      select(id) %>% 
+      bind_cols(result) %>% 
+      arrange(desc(.pred_yes))
+    
+    datatable(
+      predict_clients[1:input$numRows,]
+    )
+  })
+  
+  output$download_csv <- downloadHandler(
+    filename = function() {
+      "data.csv"
+    },
+    content = function(file) {
+      # Escreve os dados em um arquivo CSV
+      write.csv(data(), file)
+    }
+  )
+  
+  output$download_excel <- downloadHandler(
+    filename = function() {
+      "data.xlsx"
+    },
+    content = function(file) {
+      # Escreve os dados em um arquivo Excel
+      write.xlsx(data(), file)
+    }
+  )
 }
 
 # App -------------------------------
