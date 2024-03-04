@@ -1,7 +1,8 @@
 # Venda Cruzada de Seguro de Automóveis
 
-<img src="https://user-images.githubusercontent.com/95532957/204365388-ebdb9214-dc83-4f11-aec8-369dddb7f5d7.jpg" title="Venda Cruzada de Seguro de Automóveis" lign="center" height="400" class="center"/>
-
+<div align='center'>
+<img src="https://github.com/douglasaturnino/data_science_with_r/assets/95532957/a6b03292-82cd-4ef3-8edd-03ab4847f762"  width=400px/>
+</div>
 
 Este é um projeto fictício. A empresa, o contexto e as perguntas de negócios não são reais. Este portfólio está seguindo as recomendações do blog da [Comunidade DS](https://www.comunidadedatascience.com/como-usar-data-science-para-fazer-a-empresa-vender-mais/).
 
@@ -51,7 +52,7 @@ Variável | Definição
 
 # 3. Estratégia de solução
 
-Para conseguir o resultado da pesquisa no google sheets e ordenar a lista de clientes com maior probabilidade de adquirir um seguro, foi feita as etapas descrita abaixo:
+Para conseguir o resultado com maior probabilidade de  um cliente adquirir um seguro, foi feita as etapas descrita abaixo:
 
 **Step 01. Descrição dos Dados:**
 
@@ -59,7 +60,7 @@ Etapa onde foi renomeado as variaveis para o padrão onde os espaços são subst
 
 **Step 02. Engenharia de Atributo**
 
-Nessa etapa as respostas do atributos "vehicle age" foram alteradas para o padrão snake_case e as respostas do atributo "vehicle damage" também foram alteradas: os originais "Yes" e "No" por 1 e 0, respectivamente.
+Nessa etapa as respostas do atributos "vehicle age" foram alteradas para o padrão snake_case e as respostas dos atributos "driving_license", "previously_insured" e "response" também foram alteradas: os originais "1" e "0" por "yes" e "no", respectivamente e colocada como fator
 
 **Step 03. Filtragem dos Dados:**
 
@@ -75,7 +76,7 @@ Nessa etapa foi feita a padronização, reescala e transformação dos dados
 
 **Step 06. Seleção de variaveis:**
 
-Nessa etapa foi feita a identificação das variaveis mais importantes para o treinamento do modelo de aprendizado de maquina. Para isso, foi utilizado o pacote Boruta e o modelo ExtraTreesClassifier para selecionar os atributos.
+Nessa etapa foi feita a identificação das variaveis mais importantes para o treinamento do modelo de aprendizado de maquina. Para isso, foi utilizado o modelo randomForest para selecionar os atributos.
 
 **Step 07. Machine Learning Modelling:**
 
@@ -83,11 +84,11 @@ Nessa etapa é utilizada para avaliar e testar os algoritmos de aprendizado de m
 
 **Step 08. Performece do modelo:**
 
-Nessa etapa é verifiicada a performance de cada modelo criado e foi escolhido o modelo XGBoost, para a etapa de Hyperparameter.
+Nessa etapa é verifiicada a performance de cada modelo criado e foi escolhido o modelo KNN.
 
 **Step 09. Hyperparameter Fine Tuning:**
 
-Nesse etapa foi escolhodo o modelo de xgboost apesar dele não ser o modelo com os melhores  resultados é o modelo que com menor peso e o modelo que tem a menor variação conforme o aumento de numeros k. Sendo assim foi o modelo usando para escolher os melhores parametros.
+Nesse etapa foi escolhodo o modelo de KNN porque foi o medelo com o melhores resultandos utilizando ohyperparameter fine tunning.
 
 **Step 10. Converter o modelo em valores de negócios:**
 
@@ -95,6 +96,7 @@ O gerente recebeu uma lista ordenada de clientes com maior probabilidade de adqu
 
 **Step 11. Deploy Modelo to Production:**
 
+Para o deploy do modelo foi desenvolvemos um aplicativo Shiny que pode ser acessado clicando [aqui](https://douglasaturnino.shinyapps.io/car_insurance/).
 
 # 4. Modelos de Machine Learning
 
@@ -165,4 +167,9 @@ Algumas melhorias no projeto podem ser incrementadas no futuro:
 
 * Colocar as classes das linhas do grafico e a porcentagem
 * Testes novos modelos e fazer o balanciamento de classe para melhorar a performance do modelo
+
+# 9. Referências
+
+- Este Projeto foi feito como parte do curso "Ciência de Dados com R", da Comunidade DS.
+
 
